@@ -15,12 +15,15 @@ def generate_initial_solution(schedule: Schedule) -> dict:
 # on diffère de la solution courante en bougeant 1 cours de timeslot
 def generate_neighbors(solution: dict, schedule: Schedule) -> list[dict]:
     neighbors = []
+    used_slots = set(solution.values())
+    max_slot=max(used_slots)
 
-    courses = list(solution.keys())
-    course = random.choice(courses) # on prend randomly un cours à déplacer de timeslot
+    courses_in_max = [c for c, s in solution.items() if s == max_slot] 
+    courses_in_max.sort()  
+    course = courses_in_max[0]  #on prend le dernier timeslot (le plus grand)
 
     current_slot = solution[course]
-    used_slots = set(solution.values())
+    
 
     conflicting_courses = schedule.get_node_conflicts(course) # on verifie les conflits de ce cours
 
@@ -69,7 +72,7 @@ def solve(schedule: Schedule):
 
 
     for _ in range(max_iter):
-        
+
         neighbors = generate_neighbors(S, schedule)
 
         if not neighbors: 
