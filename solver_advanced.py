@@ -32,7 +32,16 @@ def generate_neighbors(solution: dict, schedule: Schedule) -> list[dict]:
 
     return neighbors
 
-
+# Trouve le meilleur prochaine voisin à explorer et retourne celui-ci
+def select_neighbor(valid_neighbors: list[dict], schedule: Schedule) -> dict:
+    best = None
+    best_cost = None
+    for n in valid_neighbors: # parcours les voisins et évalue leur nombre de timeslots (cost)
+        c = cost(schedule, n)
+        if best is None or c < best_cost: # si le voisin courant est meilleur que le précédent, on le garde
+            best = n
+            best_cost = c
+    return best
 
 
 
