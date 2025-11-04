@@ -12,23 +12,36 @@ def generate_initial_solution(schedule: Schedule) -> dict:
     schedule.verify_solution(sol) 
     return sol
 
-
+# on diffère de la solution courante en bougeant 1 cours de timeslot
 def generate_neighbors(solution: dict, schedule: Schedule) -> list[dict]:
     neighbors = []
 
     courses = list(solution.keys())
-    course = random.choice(courses) # on prend randomly un cours
+    course = random.choice(courses) # on prend randomly un cours à déplacer de timeslot
 
     current_slot = solution[course]
     used_slots = set(solution.values())
 
+    conflicting_courses = schedule.get_node_conflicts(course) # on verifie les conflits de ce cours
+
     # on essaie tous les créneaux déjà utilisés
     for slot in used_slots:
-        if slot == current_slot:
+        if slot == current_slot: # si c'est le timeslot du cours qu'on essaie de bouger on skip celui-ci
             continue
+
+        conflict = False
+
+        for other in conflicting_courses: # on vérifie qu'on place pas le cours dans un timeslot de conflit
+            if solution[other] == slot:
+                conflict = True
+                break
+
+        if conflict: # si c'est un timeslot de conflit on skip ce timeslot
+            continue
+
         new_sol = solution.copy()
-        new_sol[course] = slot      # essaie de mettre un cours dans un nouveau timeslot
-        neighbors.append(new_sol)   # retourne toutes les solutions possibles ou non
+        new_sol[course] = slot      
+        neighbors.append(new_sol)   # retourne les solutions valides
 
     return neighbors
 
@@ -56,21 +69,13 @@ def solve(schedule: Schedule):
 
 
     for _ in range(max_iter):
+        
         neighbors = generate_neighbors(S, schedule)
 
-        # on garde seulement les voisins possibles
-        valid_neighbors = []
-        for n in neighbors: 
-            try:
-                schedule.verify_solution(n)
-                valid_neighbors.append(n)
-            except AssertionError:
-                pass
-
-        if not valid_neighbors: 
+        if not neighbors: 
             break
 
-        S = select_neighbor(valid_neighbors, schedule)
+        S = select_neighbor(neighbors, schedule)
         current_cost = cost(schedule, S)
 
         if current_cost < best_cost: #remplace la vieille solution par une à coût moindre
